@@ -39,7 +39,7 @@ function RecipeDetails() {
   }
 
   return (
-    <div className="flex flex-col items-center container mx-auto p-4">
+    <div className="flex flex-col items-center container mx-auto p-4  bg-green-100">
       <h3 className="text-3xl text-center">{details.title}</h3>
       <img src={details.image} className="w-72 mt-6 rounded-3xl" />
       <h4 className="my-4 text-2xl">Ingredients for 1 portion</h4>

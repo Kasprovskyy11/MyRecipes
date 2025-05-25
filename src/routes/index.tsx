@@ -25,10 +25,7 @@ function Index() {
   const [filters, setFilters] = useState([]);
   let [cuisine, setCuisine] = useState("");
 
-  let URL = `https://api.spoonacular.com/recipes/complexSearch?apiKey=${API_KEY_2}&number=100&offset=0`;
-  if (searchQuery) {
-    URL += `&query=${searchQuery}`;
-  }
+  const URL = `https://api.spoonacular.com/recipes/complexSearch?apiKey=${API_KEY_2}&number=100&offset=0`;
 
   const cuisines = [
     "African",
@@ -70,9 +67,18 @@ function Index() {
     }
   };
 
+  const searchQueryFunction = (event) => {
+    setSearchQuery(event.target.value);
+    if (searchQuery) {
+      setUsedURL(URL + `&query=${searchQuery}`);
+    } else {
+      setUsedURL(URL);
+    }
+  };
+
   const isLastComa = () => {
     if (cuisine[cuisine.length - 1] === ",") {
-      cuisine = cuisine.slice(0, -1);
+      setCuisine(cuisine.slice(0, -1));
     }
   };
 
@@ -87,29 +93,19 @@ function Index() {
 
   // 🔁 Fetchuj dane przy każdej zmianie `searchQuery`
   useEffect(() => {
-    if (searchQuery.trim() === "") return;
-    if (filters) setLoading(true);
+    setLoading(true);
 
-    if (cuisine) {
-      URL += `&cuisine=${cuisine}`;
+    let cuisineStr = cuisine.endsWith(",") ? cuisine.slice(0, -1) : cuisine;
+    let url = `${URL}&query=${searchQuery}`;
+    if (cuisineStr) {
+      url += `&cuisine=${cuisineStr}`;
     }
-    //   axios
-    //     .get(`https://api.api-ninjas.com/v1/recipe?query=${searchQuery}`, {
-    //       headers: {
-    //         "X-Api-Key": API_KEY,
-    //       },
-    //     })
-    //     .then((response) => {
-    //       setRecipes(response.data);
-    //       setLoading(false);
-    //     })
-    //     .catch((error) => {
-    //       console.error("Błąd API:", error);
-    //       setLoading(false);
-    //     });
-    // }, [searchQuery, setRecipes]);
+    if (searchQuery.trim() !== "") {
+      url += `&query=${searchQuery}`;
+    }
+
     axios
-      .get(`${URL}`)
+      .get(url)
       .then((response) => {
         setRecipes(response.data.results);
         setLoading(false);
@@ -118,16 +114,16 @@ function Index() {
         console.error("Błąd API:", error);
         setLoading(false);
       });
-  }, [searchQuery, setRecipes, cuisine]);
+  }, [searchQuery, cuisine, setRecipes]);
 
   return (
-    <main className="container mx-auto p-4 flex flex-col items-center">
+    <main className="container mx-auto p-4 flex flex-col items-center bg-green-100">
       <h2 className="text-4xl uppercase font-bold">Home Page</h2>
 
       <input
         type="text"
         placeholder="Search for recipes"
-        onChange={(e) => setSearchQuery(e.target.value)}
+        onChange={(event) => searchQueryFunction(event)}
         className="text-center mt-6 border-1 rounded-full w-72 h-8 md:w-100 md:h-10"
       />
 
@@ -146,7 +142,7 @@ function Index() {
         ))}
       </div>
 
-      <div className="flex flex-col md:flex-row md:flex-wrap md:gap-2 md:justify-center items-center mt-12">
+      <div className="flex flex-col md:flex-row md:flex-wrap md:gap-x-20 md:gap-y-6 md:justify-center items-center mt-12">
         {loading ? (
           <div>Loading...</div>
         ) : recipes.length > 0 ? (
