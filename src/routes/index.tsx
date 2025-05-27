@@ -1,31 +1,22 @@
 import { createFileRoute } from "@tanstack/react-router";
-import RecipeCard from "../components/RecipeCard";
 import axios from "axios";
 import RecipeLazyCard from "../components/RecipeLazyCard";
 import { useEffect, useState } from "react";
 import { useRecipes } from "../context/RecipeContext";
-
-interface Recipe {
-  title: string;
-  ingredients: string;
-  instructions: string;
-  servings: string;
-}
 
 export const Route = createFileRoute("/")({
   component: Index,
 });
 
 function Index() {
-  const API_KEY = "WDdsGQAk1N5Sr52RM7H0uw==aEm11stJM79Vha2e";
-  const API_KEY_2 = "048c790e4f5e4b56bd8c6d9b0bb1d091";
+  const API_KEY = "fe1bb062215e4582aaf7cd41214828b3";
   const { recipes, setRecipes } = useRecipes();
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("recipe"); // domyślne zapytanie
-  const [filters, setFilters] = useState([]);
-  let [cuisine, setCuisine] = useState("");
+  let [cuisineState, setCuisine] = useState([""]);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const URL = `https://api.spoonacular.com/recipes/complexSearch?apiKey=${API_KEY_2}&number=100&offset=0`;
+  const URL = `https://api.spoonacular.com/recipes/complexSearch?apiKey=${API_KEY}&number=100&offset=0`;
 
   const cuisines = [
     "African",
@@ -56,46 +47,36 @@ function Index() {
     "Vietnamese",
   ];
 
-  const handleCheckboxChange = (event) => {
-    const { value, checked } = event.target;
-    if (checked) {
-      setFilters((prevFilters) => [...prevFilters, value]);
-    } else {
-      setFilters((prevFilters) =>
-        prevFilters.filter((filter) => filter !== value)
-      );
-    }
-  };
-
   const searchQueryFunction = (event) => {
     setSearchQuery(event.target.value);
-    if (searchQuery) {
-      setUsedURL(URL + `&query=${searchQuery}`);
-    } else {
-      setUsedURL(URL);
-    }
-  };
-
-  const isLastComa = () => {
-    if (cuisine[cuisine.length - 1] === ",") {
-      setCuisine(cuisine.slice(0, -1));
-    }
   };
 
   const handleCusineChange = (event) => {
     const { value, checked } = event.target;
     if (checked) {
-      setCuisine((prevCuisine) => prevCuisine + value + ",");
+      setCuisine((prevCuisine) => [...prevCuisine, value]);
     } else {
-      setCuisine((prevCusine) => prevCusine.replace(value + ",", ""));
+      setCuisine((prevCusine) => prevCusine.filter((c) => c !== value));
     }
+  };
+
+  const checkService = (cuisine) => {
+    if (cuisineState.includes(cuisine)) {
+      return true;
+    } else {
+      return false;
+    }
+  };
+
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
   };
 
   // 🔁 Fetchuj dane przy każdej zmianie `searchQuery`
   useEffect(() => {
     setLoading(true);
 
-    let cuisineStr = cuisine.endsWith(",") ? cuisine.slice(0, -1) : cuisine;
+    let cuisineStr = cuisineState.filter(Boolean).join(",");
     let url = `${URL}&query=${searchQuery}`;
     if (cuisineStr) {
       url += `&cuisine=${cuisineStr}`;
@@ -114,7 +95,7 @@ function Index() {
         console.error("Błąd API:", error);
         setLoading(false);
       });
-  }, [searchQuery, cuisine, setRecipes]);
+  }, [searchQuery, cuisineState, setRecipes]);
 
   return (
     <main className="container mx-auto p-4 flex flex-col items-center bg-green-100">
@@ -124,23 +105,38 @@ function Index() {
         type="text"
         placeholder="Search for recipes"
         onChange={(event) => searchQueryFunction(event)}
-        className="text-center mt-6 border-1 rounded-full w-72 h-8 md:w-100 md:h-10"
+        className="text-center mt-6 border-1 rounded-full w-72 h-8 md:w-100 md:h-10 shadow-sm shadow-slate-600"
       />
 
-      <div className="flex flex-wrap gap-5 justify-center items-center mt-6 bg-green-100 p-10 rounded-full">
-        {cuisines.map((cuisine) => (
-          <div className="h-8 flex items-center">
-            <input
-              type="checkbox"
-              value={cuisine}
-              name="cuisine"
-              onChange={handleCusineChange}
-              className="mr-2 w-6 h-6"
-            ></input>
-            <label>{cuisine} Cuisine</label>
-          </div>
-        ))}
-      </div>
+      <button
+        onClick={toggleMenu}
+        className="cursor-pointer py-4 px-6 mt-10 rounded-full shadow-sm shadow-slate-400 text-white font-bold bg-green-400"
+      >
+        Show Cuisines
+      </button>
+
+      {isMenuOpen ? (
+        <div className="flex flex-wrap gap-4 justify-center items-center mt-6 bg-green-100 p-10 rounded-xl">
+          {cuisines.map((cuisine) => (
+            <div
+              key={cuisine}
+              className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow-sm"
+            >
+              <input
+                type="checkbox"
+                value={cuisine}
+                name="cuisine"
+                onChange={handleCusineChange}
+                className="w-5 h-5"
+                checked={checkService(cuisine) ? true : false}
+              />
+              <label className="text-gray-800 whitespace-nowrap">
+                {cuisine} Cuisine
+              </label>
+            </div>
+          ))}
+        </div>
+      ) : null}
 
       <div className="flex flex-col md:flex-row md:flex-wrap md:gap-x-20 md:gap-y-6 md:justify-center items-center mt-12">
         {loading ? (

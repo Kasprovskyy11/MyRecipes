@@ -16,7 +16,7 @@ function RecipeDetails() {
     (r) => r.title.toLowerCase().trim() === title.toLowerCase().trim()
   );
 
-  const API_KEY_2 = "048c790e4f5e4b56bd8c6d9b0bb1d091";
+  const API_KEY_2 = "fe1bb062215e4582aaf7cd41214828b3";
 
   useEffect(() => {
     if (recipe?.id) {
